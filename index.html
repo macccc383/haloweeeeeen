@@ -218,7 +218,7 @@
 
     canvas#tetris {
       display: block;
-      width: min(88vw, 360px);
+      width: min(76vw, 320px);
       max-width: 100%;
       height: auto;
       border-radius: 12px;
@@ -280,18 +280,45 @@
       }
 
       .game-wrapper {
-        width: min(100%, 340px);
-        gap: 0.75rem;
+        width: min(100%, 320px);
+        gap: 0.7rem;
         padding: 0 0.25rem;
       }
 
       canvas#tetris {
-        width: min(80vw, 320px);
+        width: min(72vw, 280px);
       }
 
       .touch-controls {
-        max-width: 280px;
-        gap: 0.45rem;
+        max-width: 260px;
+        gap: 0.4rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .gate-content {
+        padding: clamp(1.1rem, 4vw, 1.4rem);
+      }
+
+      .game-wrapper {
+        gap: 0.6rem;
+      }
+
+      canvas#tetris {
+        width: min(68vw, 250px);
+      }
+
+      .scoreboard {
+        font-size: 0.95rem;
+      }
+
+      .touch-controls {
+        gap: 0.35rem;
+      }
+
+      .touch-controls button {
+        padding: 0.55rem 0.7rem;
+        font-size: 1.05rem;
       }
     }
 
