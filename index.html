@@ -151,6 +151,29 @@
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
     }
 
+    .gate-content.reminder {
+      text-align: center;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    #pre-gate {
+      z-index: 10002;
+    }
+
+    #jump-scare {
+      background: #000;
+      z-index: 10001;
+    }
+
+    #jump-scare img {
+      max-width: min(100vw, 900px);
+      width: 100%;
+      height: auto;
+      border-radius: 18px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85);
+    }
+
     .gate-content h1 {
       margin: 0 0 0.75rem;
       font-size: clamp(1.8rem, 5vw, 2.4rem);
@@ -246,6 +269,20 @@
   </style>
 </head>
 <body class="gate-active">
+  <div
+    id="pre-gate"
+    class="gate-overlay"
+    role="alert"
+    aria-live="assertive"
+    aria-label="Reminder before the game"
+  >
+    <div class="gate-content reminder">
+      <h1>Get Ready!</h1>
+      <p>Put the volume in full screen!</p>
+      <p>Clear 15 lines to enter the website.</p>
+    </div>
+  </div>
+
   <div id="gate" class="gate-overlay" role="dialog" aria-modal="true" aria-labelledby="gate-title">
     <div class="gate-content">
       <h1 id="gate-title">Earn Your Entry</h1>
@@ -266,6 +303,10 @@
         <p class="swipe-hint">Tip: Short tap rotates, swipe left/right moves, swipe down drops faster.</p>
       </div>
     </div>
+  </div>
+
+  <div id="jump-scare" class="gate-overlay hidden" aria-hidden="true">
+    <img src="IMG_0112.jpeg" alt="A sudden spooky surprise" />
   </div>
 
   <header>
@@ -309,7 +350,37 @@
       const scoreEl = document.getElementById("score");
       const statusEl = document.getElementById("status");
       const gate = document.getElementById("gate");
+      const preGate = document.getElementById("pre-gate");
+      const jumpScare = document.getElementById("jump-scare");
       const TARGET_SCORE = 15;
+      const REMINDER_DURATION = 6000;
+
+      const pianoAudio = new Audio("piano.mp3");
+      pianoAudio.loop = true;
+      const screamAudio = new Audio("scream.mp3");
+
+      let shouldPlayPiano = false;
+      let reminderActive = true;
+      let jumpScareActive = false;
+      let jumpScareShown = false;
+      let gameComplete = false;
+
+      function ensurePianoPlaying() {
+        if (!shouldPlayPiano || !pianoAudio.paused) return;
+        pianoAudio.play().catch(() => {});
+      }
+
+      function startPiano() {
+        shouldPlayPiano = true;
+        pianoAudio.currentTime = 0;
+        ensurePianoPlaying();
+      }
+
+      function stopPiano() {
+        shouldPlayPiano = false;
+        pianoAudio.pause();
+        pianoAudio.currentTime = 0;
+      }
 
       const COLS = 10;
       const ROWS = 20;
@@ -394,6 +465,10 @@
         matrix: null,
         score: 0,
       };
+
+      function isGameplayFrozen() {
+        return reminderActive || jumpScareActive || gameComplete;
+      }
 
       function collide(arena, player) {
         const m = player.matrix;
@@ -525,18 +600,32 @@
       let lastTime = 0;
 
       function update(time = 0) {
+        if (gameComplete) return;
+
         const deltaTime = time - lastTime;
         lastTime = time;
-        dropCounter += deltaTime;
-        if (dropCounter > dropInterval) {
-          playerDrop();
+
+        if (isGameplayFrozen()) {
+          dropCounter = 0;
+        } else {
+          dropCounter += deltaTime;
+          if (dropCounter > dropInterval) {
+            playerDrop();
+          }
         }
+
         draw();
         requestAnimationFrame(update);
       }
 
       function updateScore() {
-        scoreEl.textContent = player.score;
+        scoreEl.textContent = Math.min(player.score, TARGET_SCORE);
+
+        if (!jumpScareShown && player.score >= 14) {
+          triggerJumpScare();
+          return;
+        }
+
         const remaining = Math.max(0, TARGET_SCORE - player.score);
         if (remaining > 0) {
           statusEl.textContent = `Only ${remaining} point${remaining === 1 ? "" : "s"} to go!`;
@@ -547,12 +636,38 @@
       }
 
       function unlockSite() {
+        if (gameComplete) return;
+        stopPiano();
         gate.classList.add("hidden");
         document.body.classList.remove("gate-active");
         setTimeout(() => {
           gate.setAttribute("aria-hidden", "true");
           gate.style.display = "none";
+          gameComplete = true;
         }, 600);
+      }
+
+      function triggerJumpScare() {
+        jumpScareShown = true;
+        jumpScareActive = true;
+        player.score = TARGET_SCORE;
+        scoreEl.textContent = TARGET_SCORE;
+        statusEl.textContent = "Hold tight...";
+        jumpScare.classList.remove("hidden");
+        jumpScare.setAttribute("aria-hidden", "false");
+        stopPiano();
+        screamAudio.currentTime = 0;
+        screamAudio.play().catch(() => {});
+
+        setTimeout(() => {
+          screamAudio.pause();
+          screamAudio.currentTime = 0;
+          jumpScare.classList.add("hidden");
+          jumpScare.setAttribute("aria-hidden", "true");
+          jumpScareActive = false;
+          statusEl.textContent = "You did it! Enjoy the party.";
+          unlockSite();
+        }, 3000);
       }
 
       function softDrop() {
@@ -561,7 +676,8 @@
       }
 
       document.addEventListener("keydown", (event) => {
-        if (gate.classList.contains("hidden")) return;
+        if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
+        ensurePianoPlaying();
         switch (event.key) {
           case "ArrowLeft":
             playerMove(-1);
@@ -596,7 +712,8 @@
       const controlButtons = document.querySelectorAll(".control-buttons button");
       controlButtons.forEach((btn) => {
         btn.addEventListener("click", () => {
-          if (gate.classList.contains("hidden")) return;
+          if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
+          ensurePianoPlaying();
           const action = btn.getAttribute("data-action");
           if (action === "left") playerMove(-1);
           if (action === "right") playerMove(1);
@@ -607,27 +724,25 @@
 
       let touchStartX = 0;
       let touchStartY = 0;
-      let touchStartTime = 0;
 
       function handlePointerDown(event) {
-        if (gate.classList.contains("hidden")) return;
+        if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
+        ensurePianoPlaying();
         const point = event.changedTouches ? event.changedTouches[0] : event;
         touchStartX = point.clientX;
         touchStartY = point.clientY;
-        touchStartTime = performance.now();
       }
 
       function handlePointerUp(event) {
-        if (gate.classList.contains("hidden")) return;
+        if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
         const point = event.changedTouches ? event.changedTouches[0] : event;
         const dx = point.clientX - touchStartX;
         const dy = point.clientY - touchStartY;
-        const elapsed = performance.now() - touchStartTime;
         const absX = Math.abs(dx);
         const absY = Math.abs(dy);
         const swipeThreshold = 28;
 
-        if (absX < swipeThreshold && absY < swipeThreshold && elapsed < 260) {
+        if (absX < swipeThreshold && absY < swipeThreshold) {
           playerRotate(1);
           return;
         }
@@ -651,6 +766,16 @@
       playerReset();
       updateScore();
       update();
+
+      setTimeout(() => {
+        preGate.classList.add("hidden");
+        reminderActive = false;
+        startPiano();
+        setTimeout(() => {
+          preGate.setAttribute("aria-hidden", "true");
+          preGate.style.display = "none";
+        }, 600);
+      }, REMINDER_DURATION);
     })();
   </script>
 </body>
