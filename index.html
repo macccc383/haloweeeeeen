@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
   <title>Halloween Fun</title>
   <style>
     :root {
@@ -29,6 +32,8 @@
       text-align: center;
       min-height: 100vh;
       min-height: 100dvh;
+      min-height: 100svh;
+      min-height: 100lvh;
       overflow-x: hidden;
     }
 
@@ -144,9 +149,13 @@
       z-index: 9999;
       transition: opacity 0.5s ease;
       width: 100vw;
+      width: 100svw;
       width: 100dvw;
+      width: 100lvw;
       height: 100vh;
+      height: 100svh;
       height: 100dvh;
+      height: 100lvh;
       overscroll-behavior: contain;
     }
 
@@ -205,10 +214,14 @@
       display: grid;
       gap: 1rem;
       justify-items: center;
+      width: min(100%, 420px);
+      margin-left: auto;
+      margin-right: auto;
     }
 
     canvas#tetris {
-      width: min(88vw, 360px);
+      display: block;
+      width: min(92vw, 380px);
       height: auto;
       border-radius: 12px;
       background: rgba(11, 10, 18, 0.8);
@@ -291,7 +304,7 @@
   >
     <div class="gate-content reminder">
       <h1>Get Ready!</h1>
-      <p>Put the volume in full screen!</p>
+      <p>Put the phone in full volume for the most optimal experience!</p>
       <p>Clear 15 lines to enter the website.</p>
     </div>
   </div>
