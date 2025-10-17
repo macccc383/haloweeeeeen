@@ -243,6 +243,40 @@
       color: var(--accent);
     }
 
+    .touch-controls {
+      display: grid;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .touch-controls__row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .touch-controls button {
+      flex: 1 1 auto;
+      padding: 0.65rem 0.85rem;
+      font-size: 1.2rem;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      background: rgba(255, 117, 24, 0.12);
+      color: #ffdea6;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .touch-controls button:active,
+    .touch-controls button:focus-visible {
+      outline: none;
+      background: rgba(255, 117, 24, 0.25);
+      transform: translateY(1px);
+    }
+
     @media (max-width: 540px) {
       .gate-content {
         padding: clamp(1.25rem, 4vw, 1.6rem);
@@ -256,6 +290,10 @@
 
       canvas#tetris {
         width: min(80vw, 320px);
+      }
+
+      .touch-controls {
+        max-width: 280px;
       }
     }
   </style>
@@ -279,12 +317,25 @@
     <div class="gate-content">
       <h1 id="gate-title">Earn Your Entry</h1>
       <p>Clear 8 lines in a mini Tetris challenge to unlock the Halloween fun.</p>
-      <p>Each line cleared earns you one point. Use the arrow keys to guide the pieces.</p>
+      <p>
+        Each line cleared earns you one point. Use the arrow keys or the on-screen
+        controls to guide the pieces.
+      </p>
       <div class="game-wrapper">
         <canvas id="tetris" width="240" height="480" aria-label="Tetris board"></canvas>
         <div class="scoreboard" aria-live="polite">
           <strong>Score: <span id="score">0</span> / <span id="target-score">8</span></strong>
-          <span id="status">Use the arrow keys to move, rotate, and drop pieces.</span>
+          <span id="status">Use the arrow keys or buttons below to move, rotate, and drop pieces.</span>
+        </div>
+        <div class="touch-controls" aria-label="Tetris touch controls">
+          <div class="touch-controls__row">
+            <button type="button" data-control="rotate" aria-label="Rotate piece">⟲</button>
+          </div>
+          <div class="touch-controls__row">
+            <button type="button" data-control="left" aria-label="Move left">◀</button>
+            <button type="button" data-control="down" aria-label="Soft drop">▼</button>
+            <button type="button" data-control="right" aria-label="Move right">▶</button>
+          </div>
         </div>
       </div>
     </div>
@@ -338,6 +389,7 @@
       const gate = document.getElementById("gate");
       const preGate = document.getElementById("pre-gate");
       const jumpScare = document.getElementById("jump-scare");
+      const controlButtons = document.querySelectorAll("[data-control]");
       const TARGET_SCORE = 8;
       const JUMPSCARE_SCORE = 6;
       const REMINDER_DURATION = 6000;
@@ -630,7 +682,7 @@
         const remaining = Math.max(0, TARGET_SCORE - player.score);
         if (remaining > 0) {
           const guidance =
-            player.score === 0 ? "Use the arrow keys to play. " : "";
+            player.score === 0 ? "Use the arrow keys or buttons to play. " : "";
           statusEl.textContent = `${guidance}Only ${remaining} point${
             remaining === 1 ? "" : "s"
           } to go!`;
@@ -722,6 +774,40 @@
             hardDrop();
             break;
         }
+      });
+
+      function handleControlAction(action) {
+        if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
+        ensurePianoPlaying();
+        switch (action) {
+          case "left":
+            playerMove(-1);
+            break;
+          case "right":
+            playerMove(1);
+            break;
+          case "down":
+            softDrop();
+            break;
+          case "rotate":
+            playerRotate(1);
+            break;
+        }
+      }
+
+      controlButtons.forEach((button) => {
+        const action = button.dataset.control;
+        button.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          handleControlAction(action);
+        });
+        button.addEventListener("click", (event) => {
+          if (event.detail !== 0) {
+            event.preventDefault();
+            return;
+          }
+          handleControlAction(action);
+        });
       });
 
       playerReset();
