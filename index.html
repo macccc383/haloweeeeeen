@@ -1,1 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halloween Fun</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", sans-serif;
+      background: radial-gradient(circle at top, #1a1a2e, #0d0d15 60%);
+      color: #f8f1ff;
+      text-align: center;
+    }
 
+    header {
+      padding: 3rem 1rem 2rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      letter-spacing: 0.2rem;
+      text-transform: uppercase;
+      color: #ff7518;
+      text-shadow: 0 0 10px rgba(255, 117, 24, 0.4);
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      color: #ffdea6;
+    }
+
+    main {
+      padding: 0 1.5rem 3rem;
+      display: grid;
+      gap: 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: rgba(24, 23, 38, 0.8);
+      border: 1px solid rgba(255, 117, 24, 0.35);
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.35);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: #ff7518;
+      text-transform: uppercase;
+      letter-spacing: 0.15rem;
+      font-size: 1.5rem;
+    }
+
+    .card ul {
+      list-style: none;
+      padding: 0;
+      margin: 1rem 0 0;
+    }
+
+    .card li {
+      margin: 0.6rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+
+    .card li::before {
+      content: "🎃";
+      position: absolute;
+      left: 0;
+    }
+
+    .cta {
+      background: linear-gradient(135deg, #ff7518, #f8485e);
+      color: #0d0d15;
+      font-weight: bold;
+      padding: 1rem 2rem;
+      border-radius: 999px;
+      display: inline-block;
+      text-decoration: none;
+      margin-top: 1rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .cta:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 25px rgba(248, 72, 94, 0.35);
+    }
+
+    footer {
+      padding: 2rem 1rem 3rem;
+      color: #ffdea6;
+    }
+
+    @media (min-width: 680px) {
+      main {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .card:nth-child(3) {
+        grid-column: span 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Spooky Season</h1>
+    <p>Celebrate Halloween with playful frights, tasty treats, and eerie fun.</p>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Party Ideas</h2>
+      <ul>
+        <li>Host a costume contest with creepy categories.</li>
+        <li>Set up a spooky movie marathon under the stars.</li>
+        <li>Create a DIY potion bar with colorful drinks.</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h2>Haunted Playlist</h2>
+      <ul>
+        <li>Classic monster tunes to set the mood.</li>
+        <li>Chilling instrumentals for background ambiance.</li>
+        <li>Modern hits with a ghostly twist.</li>
+      </ul>
+    </section>
+    <section class="card">
+      <h2>Trick-or-Treat Tips</h2>
+      <ul>
+        <li>Glow sticks or flashlights help everyone stay visible.</li>
+        <li>Visit familiar neighborhoods and stick with a group.</li>
+        <li>Save a few sweets to share with friends the next day!</li>
+      </ul>
+      <a class="cta" href="#" aria-label="Get more Halloween inspiration">Get Inspired</a>
+    </section>
+  </main>
+  <footer>
+    <p>Have a safe and spectacular Halloween night!</p>
+  </footer>
+</body>
+</html>
