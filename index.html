@@ -789,6 +789,10 @@
       }
 
       function handlePointerDown(event) {
+        if (event.target.closest(".control-buttons")) {
+          resetTouchTracking();
+          return;
+        }
         if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
         ensurePianoPlaying();
         const point = event.changedTouches ? event.changedTouches[0] : event;
@@ -797,6 +801,10 @@
       }
 
       function handlePointerUp(event) {
+        if (event.target.closest(".control-buttons")) {
+          resetTouchTracking();
+          return;
+        }
         if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
         if (touchStartX === null || touchStartY === null) return;
 
