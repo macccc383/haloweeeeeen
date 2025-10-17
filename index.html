@@ -244,7 +244,7 @@
     }
 
     .control-buttons {
-      margin-top: 0.75rem;
+      margin-top: 0.35rem;
       display: grid;
       grid-template-columns: repeat(3, 64px);
       grid-template-rows: repeat(2, 64px);
@@ -289,12 +289,6 @@
       grid-row: 2;
     }
 
-    .swipe-hint {
-      font-size: 0.85rem;
-      color: rgba(255, 222, 166, 0.8);
-      max-width: 320px;
-    }
-
     @media (max-width: 540px) {
       .gate-content {
         padding: clamp(1.25rem, 4vw, 1.6rem);
@@ -329,28 +323,27 @@
     <div class="gate-content reminder">
       <h1>Get Ready!</h1>
       <p>Put the phone in full volume for the most optimal experience!</p>
-      <p>Clear 15 lines to enter the website.</p>
+      <p>Clear 8 lines to enter the website.</p>
     </div>
   </div>
 
   <div id="gate" class="gate-overlay" role="dialog" aria-modal="true" aria-labelledby="gate-title">
     <div class="gate-content">
       <h1 id="gate-title">Earn Your Entry</h1>
-      <p>Clear 15 lines in a mini Tetris challenge to unlock the Halloween fun.</p>
+      <p>Clear 8 lines in a mini Tetris challenge to unlock the Halloween fun.</p>
       <p>Each line cleared earns you one point. Swipe or use the controls below.</p>
       <div class="game-wrapper">
         <canvas id="tetris" width="240" height="480" aria-label="Tetris board"></canvas>
-        <div class="scoreboard" aria-live="polite">
-          <strong>Score: <span id="score">0</span> / 15</strong>
-          <span id="status">Swipe left/right to move, tap to rotate, swipe down to slam drop.</span>
-        </div>
         <div class="control-buttons" aria-hidden="false">
           <button type="button" data-action="rotate" aria-label="Rotate piece">⟳</button>
           <button type="button" data-action="left" aria-label="Move left">◀</button>
           <button type="button" data-action="down" aria-label="Drop down">▼</button>
           <button type="button" data-action="right" aria-label="Move right">▶</button>
         </div>
-        <p class="swipe-hint">Tip: Short tap rotates, swipe left/right moves, swipe down slam drops.</p>
+        <div class="scoreboard" aria-live="polite">
+          <strong>Score: <span id="score">0</span> / <span id="target-score">8</span></strong>
+          <span id="status">Swipe left/right to move or use the buttons above.</span>
+        </div>
       </div>
     </div>
   </div>
@@ -398,12 +391,16 @@
       const canvas = document.getElementById("tetris");
       const context = canvas.getContext("2d");
       const scoreEl = document.getElementById("score");
+      const targetScoreEl = document.getElementById("target-score");
       const statusEl = document.getElementById("status");
       const gate = document.getElementById("gate");
       const preGate = document.getElementById("pre-gate");
       const jumpScare = document.getElementById("jump-scare");
-      const TARGET_SCORE = 15;
+      const TARGET_SCORE = 8;
+      const JUMPSCARE_SCORE = 6;
       const REMINDER_DURATION = 6000;
+
+      targetScoreEl.textContent = TARGET_SCORE;
 
       const pianoAudio = new Audio("piano.mp3");
       pianoAudio.loop = true;
@@ -596,7 +593,7 @@
           arena.forEach((row) => row.fill(0));
           player.score = 0;
           updateScore();
-          statusEl.textContent = "Oops! Try again to reach 15 points.";
+          statusEl.textContent = `Oops! Try again to reach ${TARGET_SCORE} points.`;
           dropInterval = INITIAL_DROP_INTERVAL;
         }
       }
@@ -683,14 +680,20 @@
       function updateScore() {
         scoreEl.textContent = Math.min(player.score, TARGET_SCORE);
 
-        if (!jumpScareShown && player.score >= 14) {
+        if (!jumpScareShown && player.score >= JUMPSCARE_SCORE) {
           triggerJumpScare();
           return;
         }
 
         const remaining = Math.max(0, TARGET_SCORE - player.score);
         if (remaining > 0) {
-          statusEl.textContent = `Only ${remaining} point${remaining === 1 ? "" : "s"} to go!`;
+          const guidance =
+            player.score === 0
+              ? "Use the controls above or swipe to play. "
+              : "";
+          statusEl.textContent = `${guidance}Only ${remaining} point${
+            remaining === 1 ? "" : "s"
+          } to go!`;
         } else {
           statusEl.textContent = "You did it! Enjoy the party.";
           unlockSite();
@@ -782,6 +785,7 @@
       let touchStartX = null;
       let touchStartY = null;
       let tapHandledRecently = false;
+      let interactionStartedOnControls = false;
 
       function resetTouchTracking() {
         touchStartX = null;
@@ -791,7 +795,9 @@
       function handlePointerDown(event) {
         if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
         const target = event.target;
-        if (target instanceof Element && target.closest(".control-buttons")) {
+        interactionStartedOnControls =
+          target instanceof Element && target.closest(".control-buttons");
+        if (interactionStartedOnControls) {
           resetTouchTracking();
           return;
         }
@@ -804,7 +810,11 @@
       function handlePointerUp(event) {
         if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
         const target = event.target;
-        if (target instanceof Element && target.closest(".control-buttons")) {
+        if (
+          interactionStartedOnControls ||
+          (target instanceof Element && target.closest(".control-buttons"))
+        ) {
+          interactionStartedOnControls = false;
           resetTouchTracking();
           return;
         }
@@ -840,11 +850,17 @@
       if (supportsPointer) {
         gate.addEventListener("pointerdown", handlePointerDown);
         gate.addEventListener("pointerup", handlePointerUp);
-        gate.addEventListener("pointercancel", resetTouchTracking);
+        gate.addEventListener("pointercancel", () => {
+          interactionStartedOnControls = false;
+          resetTouchTracking();
+        });
       } else {
         gate.addEventListener("touchstart", handlePointerDown, { passive: true });
         gate.addEventListener("touchend", handlePointerUp);
-        gate.addEventListener("touchcancel", resetTouchTracking);
+        gate.addEventListener("touchcancel", () => {
+          interactionStartedOnControls = false;
+          resetTouchTracking();
+        });
       }
 
       canvas.addEventListener("click", () => {
