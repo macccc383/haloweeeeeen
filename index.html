@@ -207,18 +207,18 @@
     }
 
     .game-wrapper {
-      margin-top: 0.75rem;
+      margin-top: 0.5rem;
       display: grid;
-      gap: 0.7rem;
+      gap: 0.45rem;
       justify-items: center;
-      width: min(100%, 420px);
+      width: min(100%, 340px);
       margin-left: auto;
       margin-right: auto;
     }
 
     canvas#tetris {
       display: block;
-      width: min(64vw, 280px);
+      width: min(56vw, 220px);
       max-width: 100%;
       height: auto;
       border-radius: 12px;
@@ -229,9 +229,9 @@
     .scoreboard {
       display: flex;
       flex-direction: column;
-      gap: 0.3rem;
+      gap: 0.25rem;
       align-items: center;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
 
     .scoreboard strong {
@@ -241,9 +241,9 @@
 
     .touch-controls {
       display: grid;
-      gap: 0.45rem;
+      gap: 0.35rem;
       width: 100%;
-      max-width: 320px;
+      max-width: 280px;
       padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
     }
 
@@ -255,8 +255,8 @@
 
     .touch-controls button {
       flex: 1 1 auto;
-      padding: 0.65rem 0.85rem;
-      font-size: 1.2rem;
+      padding: 0.55rem 0.75rem;
+      font-size: 1.1rem;
       border-radius: 999px;
       border: 1px solid var(--accent-soft);
       background: rgba(255, 117, 24, 0.12);
@@ -285,19 +285,19 @@
       }
 
       .game-wrapper {
-        width: min(100%, 300px);
-        gap: 0.5rem;
+        width: min(100%, 280px);
+        gap: 0.35rem;
         padding: 0 0.25rem;
-        margin-top: 0.45rem;
+        margin-top: 0.35rem;
       }
 
       canvas#tetris {
-        width: min(46vw, 200px);
+        width: min(48vw, 180px);
       }
 
       .touch-controls {
-        max-width: 230px;
-        gap: 0.28rem;
+        max-width: 220px;
+        gap: 0.24rem;
       }
     }
 
@@ -307,12 +307,12 @@
       }
 
       .game-wrapper {
-        gap: 0.4rem;
-        margin-top: 0.4rem;
+        gap: 0.3rem;
+        margin-top: 0.35rem;
       }
 
       canvas#tetris {
-        width: min(44vw, 180px);
+        width: min(44vw, 160px);
       }
 
       .scoreboard {
@@ -320,16 +320,16 @@
       }
 
       .touch-controls {
-        gap: 0.22rem;
+        gap: 0.2rem;
       }
 
       .touch-controls__row {
-        gap: 0.35rem;
+        gap: 0.3rem;
       }
 
       .touch-controls button {
-        padding: 0.42rem 0.58rem;
-        font-size: 0.9rem;
+        padding: 0.38rem 0.5rem;
+        font-size: 0.88rem;
       }
     }
 
@@ -339,15 +339,15 @@
       }
 
       canvas#tetris {
-        width: min(40vw, 160px);
+        width: min(38vw, 140px);
       }
 
       .touch-controls button {
-        padding: 0.38rem 0.5rem;
+        padding: 0.34rem 0.46rem;
       }
 
       .touch-controls__row {
-        gap: 0.32rem;
+        gap: 0.28rem;
       }
     }
 
@@ -381,22 +381,22 @@
     <div class="gate-content reminder">
       <h1>Get Ready!</h1>
       <p>Put the phone in full volume for the most optimal experience!</p>
-      <p>Clear 8 lines to enter the website.</p>
+      <p>Clear 4 lines to enter the website.</p>
     </div>
   </div>
 
   <div id="gate" class="gate-overlay" role="dialog" aria-modal="true" aria-labelledby="gate-title">
     <div class="gate-content">
       <h1 id="gate-title">Earn Your Entry</h1>
-      <p>Clear 8 lines in a mini Tetris challenge to unlock the Halloween fun.</p>
+      <p>Clear 4 lines in a mini Tetris challenge to unlock the Halloween fun.</p>
       <p>
         Each line cleared earns you one point. Use the arrow keys or the on-screen
         controls to guide the pieces.
       </p>
       <div class="game-wrapper">
-        <canvas id="tetris" width="240" height="480" aria-label="Tetris board"></canvas>
+        <canvas id="tetris" width="180" height="360" aria-label="Tetris board"></canvas>
         <div class="scoreboard" aria-live="polite">
-          <strong>Score: <span id="score">0</span> / <span id="target-score">8</span></strong>
+          <strong>Score: <span id="score">0</span> / <span id="target-score">4</span></strong>
           <span id="status">Use the arrow keys or buttons below to move, rotate, and drop pieces.</span>
         </div>
         <div class="touch-controls" aria-label="Tetris touch controls">
@@ -463,8 +463,8 @@
       const preGate = document.getElementById("pre-gate");
       const jumpScare = document.getElementById("jump-scare");
       const controlButtons = document.querySelectorAll("[data-control]");
-      const TARGET_SCORE = 8;
-      const JUMPSCARE_SCORE = 6;
+      const TARGET_SCORE = 4;
+      const JUMPSCARE_SCORE = 3;
       const REMINDER_DURATION = 6000;
 
       targetScoreEl.textContent = TARGET_SCORE;
@@ -494,14 +494,31 @@
       pianoAudio.loop = true;
       const screamAudio = new Audio("scream.mp3");
 
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      let audioContext = null;
+      if (AudioContextClass) {
+        audioContext = new AudioContextClass();
+        const screamSource = audioContext.createMediaElementSource(screamAudio);
+        const screamGainNode = audioContext.createGain();
+        screamGainNode.gain.value = 1.8;
+        screamSource.connect(screamGainNode).connect(audioContext.destination);
+      }
+
       let shouldPlayPiano = false;
       let reminderActive = true;
       let jumpScareActive = false;
       let jumpScareShown = false;
       let gameComplete = false;
 
+      function ensureAudioContextActive() {
+        if (audioContext && audioContext.state === "suspended") {
+          audioContext.resume().catch(() => {});
+        }
+      }
+
       function ensurePianoPlaying() {
         if (!shouldPlayPiano || !pianoAudio.paused) return;
+        ensureAudioContextActive();
         pianoAudio.play().catch(() => {});
       }
 
@@ -519,7 +536,7 @@
 
       const COLS = 10;
       const ROWS = 20;
-      const BLOCK_SIZE = 24;
+      const BLOCK_SIZE = 18;
       canvas.width = COLS * BLOCK_SIZE;
       canvas.height = ROWS * BLOCK_SIZE;
       context.scale(BLOCK_SIZE, BLOCK_SIZE);
@@ -807,6 +824,7 @@
         jumpScare.classList.remove("hidden");
         jumpScare.setAttribute("aria-hidden", "false");
         stopPiano();
+        ensureAudioContextActive();
         screamAudio.currentTime = 0;
         screamAudio.play().catch(() => {});
 
@@ -839,6 +857,7 @@
 
       document.addEventListener("keydown", (event) => {
         if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
+        ensureAudioContextActive();
         if (["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", " "].includes(event.key)) {
           event.preventDefault();
         }
@@ -872,6 +891,7 @@
 
       function handleControlAction(action) {
         if (gate.classList.contains("hidden") || isGameplayFrozen()) return;
+        ensureAudioContextActive();
         ensurePianoPlaying();
         switch (action) {
           case "left":
