@@ -211,14 +211,14 @@
       display: grid;
       gap: 0.7rem;
       justify-items: center;
-      width: min(100%, 420px);
+      width: min(100%, 260px);
       margin-left: auto;
       margin-right: auto;
     }
 
     canvas#tetris {
       display: block;
-      width: min(64vw, 280px);
+      width: min(34vw, 160px);
       max-width: 100%;
       height: auto;
       border-radius: 12px;
@@ -285,14 +285,14 @@
       }
 
       .game-wrapper {
-        width: min(100%, 300px);
+        width: min(100%, 220px);
         gap: 0.5rem;
         padding: 0 0.25rem;
         margin-top: 0.45rem;
       }
 
       canvas#tetris {
-        width: min(46vw, 200px);
+        width: min(42vw, 140px);
       }
 
       .touch-controls {
@@ -312,7 +312,7 @@
       }
 
       canvas#tetris {
-        width: min(44vw, 180px);
+        width: min(40vw, 132px);
       }
 
       .scoreboard {
@@ -339,7 +339,7 @@
       }
 
       canvas#tetris {
-        width: min(40vw, 160px);
+        width: min(38vw, 120px);
       }
 
       .touch-controls button {
@@ -381,22 +381,22 @@
     <div class="gate-content reminder">
       <h1>Get Ready!</h1>
       <p>Put the phone in full volume for the most optimal experience!</p>
-      <p>Clear 8 lines to enter the website.</p>
+      <p>Clear 4 lines to enter the website.</p>
     </div>
   </div>
 
   <div id="gate" class="gate-overlay" role="dialog" aria-modal="true" aria-labelledby="gate-title">
     <div class="gate-content">
       <h1 id="gate-title">Earn Your Entry</h1>
-      <p>Clear 8 lines in a mini Tetris challenge to unlock the Halloween fun.</p>
+      <p>Clear 4 lines in a mini Tetris challenge to unlock the Halloween fun.</p>
       <p>
         Each line cleared earns you one point. Use the arrow keys or the on-screen
         controls to guide the pieces.
       </p>
       <div class="game-wrapper">
-        <canvas id="tetris" width="240" height="480" aria-label="Tetris board"></canvas>
+        <canvas id="tetris" width="160" height="320" aria-label="Tetris board"></canvas>
         <div class="scoreboard" aria-live="polite">
-          <strong>Score: <span id="score">0</span> / <span id="target-score">8</span></strong>
+          <strong>Score: <span id="score">0</span> / <span id="target-score">4</span></strong>
           <span id="status">Use the arrow keys or buttons below to move, rotate, and drop pieces.</span>
         </div>
         <div class="touch-controls" aria-label="Tetris touch controls">
@@ -414,43 +414,8 @@
   </div>
 
   <div id="jump-scare" class="gate-overlay hidden" aria-hidden="true">
-    <img src="IMG_0112.jpeg" alt="A sudden spooky surprise" />
+    <img src="NbJngUnT.jpg" alt="A sudden spooky surprise" />
   </div>
-
-  <header>
-    <h1>Spooky Season</h1>
-    <p>Celebrate Halloween with playful frights, tasty treats, and eerie fun.</p>
-  </header>
-  <main>
-    <section class="card">
-      <h2>Party Ideas</h2>
-      <ul>
-        <li>Host a costume contest with creepy categories.</li>
-        <li>Set up a spooky movie marathon under the stars.</li>
-        <li>Create a DIY potion bar with colorful drinks.</li>
-      </ul>
-    </section>
-    <section class="card">
-      <h2>Haunted Playlist</h2>
-      <ul>
-        <li>Classic monster tunes to set the mood.</li>
-        <li>Chilling instrumentals for background ambiance.</li>
-        <li>Modern hits with a ghostly twist.</li>
-      </ul>
-    </section>
-    <section class="card">
-      <h2>Trick-or-Treat Tips</h2>
-      <ul>
-        <li>Glow sticks or flashlights help everyone stay visible.</li>
-        <li>Visit familiar neighborhoods and stick with a group.</li>
-        <li>Save a few sweets to share with friends the next day!</li>
-      </ul>
-      <a class="cta" href="#" aria-label="Get more Halloween inspiration">Get Inspired</a>
-    </section>
-  </main>
-  <footer>
-    <p>Have a safe and spectacular Halloween night!</p>
-  </footer>
   <script>
     (function () {
       const root = document.documentElement;
@@ -463,8 +428,8 @@
       const preGate = document.getElementById("pre-gate");
       const jumpScare = document.getElementById("jump-scare");
       const controlButtons = document.querySelectorAll("[data-control]");
-      const TARGET_SCORE = 8;
-      const JUMPSCARE_SCORE = 6;
+      const TARGET_SCORE = 4;
+      const JUMPSCARE_SCORE = 3;
       const REMINDER_DURATION = 6000;
 
       targetScoreEl.textContent = TARGET_SCORE;
@@ -494,6 +459,26 @@
       pianoAudio.loop = true;
       const screamAudio = new Audio("scream.mp3");
 
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      let audioContext;
+      let screamSource;
+      let screamGainNode;
+
+      function ensureAudioContext() {
+        if (!AudioContextClass) return;
+        if (!audioContext) {
+          audioContext = new AudioContextClass();
+          screamSource = audioContext.createMediaElementSource(screamAudio);
+          screamGainNode = audioContext.createGain();
+          screamGainNode.gain.value = 2.5;
+          screamSource.connect(screamGainNode).connect(audioContext.destination);
+        }
+
+        if (audioContext.state === "suspended") {
+          audioContext.resume().catch(() => {});
+        }
+      }
+
       let shouldPlayPiano = false;
       let reminderActive = true;
       let jumpScareActive = false;
@@ -501,6 +486,7 @@
       let gameComplete = false;
 
       function ensurePianoPlaying() {
+        ensureAudioContext();
         if (!shouldPlayPiano || !pianoAudio.paused) return;
         pianoAudio.play().catch(() => {});
       }
@@ -519,7 +505,7 @@
 
       const COLS = 10;
       const ROWS = 20;
-      const BLOCK_SIZE = 24;
+      const BLOCK_SIZE = 16;
       canvas.width = COLS * BLOCK_SIZE;
       canvas.height = ROWS * BLOCK_SIZE;
       context.scale(BLOCK_SIZE, BLOCK_SIZE);
@@ -807,18 +793,10 @@
         jumpScare.classList.remove("hidden");
         jumpScare.setAttribute("aria-hidden", "false");
         stopPiano();
+        ensureAudioContext();
         screamAudio.currentTime = 0;
         screamAudio.play().catch(() => {});
-
-        setTimeout(() => {
-          screamAudio.pause();
-          screamAudio.currentTime = 0;
-          jumpScare.classList.add("hidden");
-          jumpScare.setAttribute("aria-hidden", "true");
-          jumpScareActive = false;
-          statusEl.textContent = "You did it! Enjoy the party.";
-          unlockSite();
-        }, 3000);
+        gameComplete = true;
       }
 
       function softDrop() {
